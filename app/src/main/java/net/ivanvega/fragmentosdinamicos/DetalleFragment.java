@@ -94,7 +94,7 @@ public class DetalleFragment extends Fragment
         @Override
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
             mServicio = ((MiBinder)iBinder).getService();
-            mServicio.prepareMediaPlayer((MediaPlayer.OnPreparedListener) getActivity(), uriLibro);
+            mServicio.prepareMediaPlayer(DetalleFragment.this, uriLibro);
         }
 
         @Override
@@ -154,7 +154,7 @@ public class DetalleFragment extends Fragment
 
         uriLibro = Uri.parse(libro.getUrl());
 
-        /*if( mediaPlayer!= null){
+        if( mediaPlayer!= null){
             mediaPlayer.release();
         }
 
@@ -167,7 +167,7 @@ public class DetalleFragment extends Fragment
                 mediaPlayer.prepareAsync();
             } catch (IOException e) {
                 e.printStackTrace();
-            }*/
+            }
 
     }
 
