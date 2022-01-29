@@ -14,29 +14,19 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.MediaController;
 
-import androidx.annotation.Nullable;
-
 import java.io.IOException;
 
 public class ServicioVinculado extends Service implements MediaController.MediaPlayerControl {
+    private final IBinder mBinder = new MiBinder();
     String TAG = "ServicioVinculado";
     MediaPlayer mediaPlayer;
-
     Libro libro;
-    int posLibro=0;
+    int posLibro = 0;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "OnCreate");
-    }
-
-    private final IBinder mBinder = new MiBinder();
-
-    public class MiBinder extends Binder {
-        public ServicioVinculado getService() {
-            return ServicioVinculado.this;
-        }
     }
 
     @Override
@@ -47,86 +37,69 @@ public class ServicioVinculado extends Service implements MediaController.MediaP
     void prepareMediaPlayer(MediaPlayer.OnPreparedListener onPreparedListener, Libro libro) {
         this.libro = libro;
         Uri uri = Uri.parse(libro.getUrl());
-        Log.d(TAG, "Preparando: " + uri.toString());
-        if(mediaPlayer != null){
+        if (mediaPlayer != null) {
             mediaPlayer.reset();
             mediaPlayer.release();
         }
         mediaPlayer = new MediaPlayer();
         try {
             mediaPlayer.setOnPreparedListener(onPreparedListener);
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-//                    ServicioVinculado.this.
-                    Log.d(TAG, "Deteniendo serviucio");
-                    ServicioVinculado.this.stopService(new Intent(ServicioVinculado.this, ServicioVinculado.class));
-                }
-            });
+            Intent stopIntent =
+                    new Intent(ServicioVinculado.this, ServicioVinculado.class);
+            mediaPlayer.setOnCompletionListener(
+                    mediaPlayer ->
+                            ServicioVinculado.this.stopService(stopIntent)
+            );
             mediaPlayer.setDataSource(getBaseContext(), uri);
             mediaPlayer.prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        definePosLibro();
         createNotificationChannel();
         setAsForeground();
     }
 
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
+    private void definePosLibro() {
+        for (int i = 0; i < Libro.ejemplosLibros().size(); i++) {
+            if (libro.getTitulo().equals(Libro.ejemplosLibros().elementAt(i).getTitulo())) {
+                posLibro = i;
+                break;
+            }
+        }
+    }
 
-        String CHANNEL_ID = "1000";
-        String name = "Canal de audio";
-        String description = "Notificación que muestra la canción actual";
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel channel = null;
+    private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            channel = new NotificationChannel(CHANNEL_ID, name, importance);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String CHANNEL_ID = "1000";
+            String name = "Canal de audio";
+            String description = "Notificación que muestra la canción actual";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
-        }
-        // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-        NotificationManager notificationManager = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            notificationManager = getSystemService(NotificationManager.class);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
     }
 
     private void setAsForeground() {
-        for(int i=0; i<Libro.ejemplosLibros().size(); i++){
-            if(libro.getTitulo().equals(Libro.ejemplosLibros().elementAt(i).getTitulo())){
-                Log.d("Servicio", "Pos: " + i);
-                posLibro = i;
-            }
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            return;
         }
-
-        Log.d("Servicio", "Pos: " + posLibro);
         String CHANNEL_ID = "1000";
         Intent notificationIntent = new Intent(this, MainActivity.class);
         notificationIntent.putExtra("flag_servicio", true);
-        notificationIntent.putExtra("pos", Integer.toString(posLibro));
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 2000, notificationIntent, PendingIntent.FLAG_MUTABLE);
-        Notification notification = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setContentTitle(libro.getTitulo())
-                    .setContentText(libro.getAutor())
-                    .setSmallIcon(R.drawable.ic_launcher_background)
-                    .setContentIntent(pendingIntent)
-                    .setTicker("Se inicio el servicio")
-                    .build();
-        }
-        // Notification ID cannot be 0.
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 2000,
+                    notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle(libro.getTitulo())
+                .setContentText(libro.getAutor())
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentIntent(pendingIntent)
+                .build();
         startForeground(2000, notification);
     }
+
 
     @Override
     public void onDestroy() {
@@ -190,5 +163,11 @@ public class ServicioVinculado extends Service implements MediaController.MediaP
     @Override
     public int getAudioSessionId() {
         return 0;
+    }
+
+    public class MiBinder extends Binder {
+        public ServicioVinculado getService() {
+            return ServicioVinculado.this;
+        }
     }
 }
