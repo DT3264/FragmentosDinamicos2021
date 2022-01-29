@@ -38,6 +38,8 @@ public class DetalleFragment extends Fragment
 
 {
 
+
+    public static final String ARG_SERVICIO =  "idLibro";
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -56,7 +58,8 @@ public class DetalleFragment extends Fragment
     MediaController mediaController;
 
     ServicioVinculado mServicio;
-    Uri uriLibro;
+
+    Libro uriLibro;
 
     public DetalleFragment() {
         // Required empty public constructor
@@ -87,9 +90,11 @@ public class DetalleFragment extends Fragment
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        //CONECTAR
         Intent intent = new Intent(getContext(), ServicioVinculado.class);
         getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
+
     ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
@@ -152,7 +157,7 @@ public class DetalleFragment extends Fragment
         lblAutor.setText(libro.getAutor());
         imvPortada.setImageResource(libro.getRecursoImagen());
 
-        uriLibro = Uri.parse(libro.getUrl());
+        uriLibro = libro;
 
         if( mediaPlayer!= null){
             mediaPlayer.release();
