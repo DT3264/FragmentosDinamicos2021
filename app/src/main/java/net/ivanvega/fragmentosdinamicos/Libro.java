@@ -7,7 +7,7 @@ public class Libro {
     static Vector<Libro> libros = new Vector<Libro>();
     static{
         final String link1 = "https://github.com/DT3264/FragmentosDinamicos2021/blob/master/app/audio/again.flac?raw=true";
-        final String link2 = "https://github.com/DT3264/FragmentosDinamicos2021/blob/master/app/audio/again.flac?raw=true";
+        final String link2 = "https://github.com/DT3264/FragmentosDinamicos2021/blob/master/app/audio/kimi_ga_iru.flac?raw=true";
         final String link3 = "https://raw.githubusercontent.com/DT3264/FragmentosDinamicos2021/master/app/audio/uso_to_honto.flac";
 
         libros.add(new Libro("Kappa", "Akutagawa", R.drawable.kappa, link1, Libro.G_S_XIX, false, false));
