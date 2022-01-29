@@ -111,7 +111,7 @@ public class SelectorFragment extends Fragment {
                         "ELement at selected" + pos,
                         Toast.LENGTH_LONG).show();
 
-                ((MainActivity)this.contexto).mostrarDetalle(pos);
+                ((MainActivity)this.contexto).mostrarDetalle(pos, false);
             }
         );
 
